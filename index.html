@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ventas 2024–2025 · Práctica integradora GAD-2401</title>
+  <meta name="description" content="Informe de ventas en Power BI: preparación de datos, modelo en estrella, DAX, visualización y análisis de asociación.">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <aside class="lateral">
+    <div class="lateral-marca">
+      <span class="sello">GAD-2401</span>
+      <p>Análisis y visualización de datos</p>
+    </div>
+    <nav aria-label="Secciones de la página">
+      <a href="#inicio">Inicio</a>
+      <a href="#pregunta">1. Pregunta y KPIs</a>
+      <a href="#metodologia">2. Metodología</a>
+      <a href="#resultados">3. Resultados</a>
+      <a href="#asociacion">4. Asociación</a>
+      <a href="#conclusiones">5. Conclusiones</a>
+      <a href="#descarga">6. Archivo .pbix</a>
+    </nav>
+  </aside>
+
+  <div class="pagina">
+
+    <header class="portada" id="inicio">
+      <p class="etiqueta">Práctica integradora · Power BI</p>
+      <h1>Qué vendemos, dónde y cuándo: análisis de ventas 2024–2025</h1>
+      <p class="subtitulo">Un recorrido desde los archivos CSV hasta un informe de cuatro páginas, con modelo en estrella, medidas DAX y análisis de asociación.</p>
+      <dl class="ficha">
+        <div><dt>Autor</dt><dd>Nente Chávez Rene Alexis</dd></div>
+        <div><dt>Grupo</dt><dd>6951</dd></div>
+        <div><dt>Asignatura</dt><dd>Análisis y visualización de datos</dd></div>
+        <div><dt>Fecha</dt><dd>25 de noviembre de 2026</dd></div>
+      </dl>
+    </header>
+
+    <main>
+
+      <section id="pregunta">
+        <h2>1. Pregunta de negocio y KPIs</h2>
+        <p>La empresa analizada vende equipos de cómputo y accesorios a 20 clientes repartidos en cuatro regiones. Se dispone de 500 ventas registradas entre 2024 y 2025.</p>
+
+        <div class="recuadro">
+          <p><strong>Pregunta que guía el análisis:</strong> ¿en qué regiones y categorías de producto debería enfocar la empresa su esfuerzo comercial el próximo año?</p>
+          <p><strong>Quién usará el tablero:</strong> la gerencia comercial, que decide dónde invertir tiempo, inventario y promociones.</p>
+        </div>
+
+        <h3>Tres indicadores clave</h3>
+        <div class="kpis">
+          <article class="kpi">
+            <h4>Ventas Totales</h4>
+            <p class="valor">$7,416,318.43</p>
+            <p>Suma del importe de todas las ventas entre 2024 y 2025.</p>
+          </article>
+          <article class="kpi">
+            <h4>Tickets</h4>
+            <p class="valor">500</p>
+            <p>Cantidad de ventas únicas, contando cada ticket una sola vez.</p>
+          </article>
+          <article class="kpi">
+            <h4>Ticket Promedio</h4>
+            <p class="valor">$14,832.64</p>
+            <p>Cuánto se vende en promedio por ticket: Ventas Totales ÷ Tickets.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="metodologia">
+        <h2>2. Metodología</h2>
+
+        <h3>2.1 De dónde salen los datos</h3>
+        <p>La información viene de cuatro archivos CSV. <code>hechos_ventas.csv</code> guarda cada venta, y tres tablas de apoyo describen a los productos, los clientes y las fechas: <code>dim_producto.csv</code>, <code>dim_cliente.csv</code> y <code>dim_fecha.csv</code>. Después de la limpieza quedan 500 tickets, 5 productos, 20 clientes y fechas de 2024 a 2025.</p>
+
+        <h3>2.2 Limpieza en Power Query</h3>
+        <p>Antes de analizar, cada consulta se revisó en el Editor de Power Query: se asignaron los tipos de datos adecuados, se pusieron nombres claros a las consultas y se verificó la presencia de nulos y de columnas que no hacían falta.</p>
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr><th>Qué se revisó</th><th>En qué tablas</th><th>Hallazgo y solución</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Tipos de datos</td><td>Todas las consultas</td><td>Se confirmó que cada columna tuviera el tipo correcto: fechas como Fecha, montos y unidades como números, y las descripciones (cliente, región, producto) como texto.</td></tr>
+              <tr><td>Valores nulos</td><td>Todas las consultas</td><td>En la vista de calidad de columna no aparecieron vacíos ni errores relevantes, y los totales coinciden con los de control.</td></tr>
+              <tr><td>Columnas sobrantes</td><td>Todas las consultas</td><td>Todas las columnas cargadas se usan en el modelo o en las medidas, por lo que no fue necesario quitar ninguna.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>2.3 Modelo de datos</h3>
+        <p>Se armó un modelo en estrella. La tabla <strong>Hechos Ventas</strong> queda al centro y recibe relaciones de uno a muchos desde <strong>Dim Cliente</strong>, <strong>Dim Producto</strong> y <strong>Dim Fecha</strong>. Esta última se marcó como tabla de fechas para que funcionen las medidas de tiempo.</p>
+        <figure>
+          <img src="MODELO.png" alt="Modelo en estrella con Hechos Ventas al centro y las dimensiones Cliente, Producto y Fecha alrededor">
+          <figcaption>Figura 1. Diagrama del modelo en estrella.</figcaption>
+        </figure>
+
+        <h3>2.4 Medidas DAX</h3>
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr><th>Medida</th><th>Para qué sirve</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Ventas Totales</td><td>Suma el importe de las ventas.</td></tr>
+              <tr><td>Tickets</td><td>Cuenta las ventas únicas.</td></tr>
+              <tr><td>Ticket Promedio</td><td>Calcula el monto promedio por ticket.</td></tr>
+              <tr><td>Cantidad Total</td><td>Suma las unidades vendidas.</td></tr>
+              <tr><td>Ventas Año Anterior</td><td>Trae las ventas del mismo periodo un año antes.</td></tr>
+              <tr><td>Var % Año</td><td>Mide cuánto crecieron o cayeron las ventas frente al año previo.</td></tr>
+              <tr><td>% del Total Región</td><td>Indica qué parte de las ventas aporta cada región.</td></tr>
+              <tr><td>% por Fila Categoría</td><td>Muestra la mezcla de categorías dentro de cada región.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Las dos medidas de porcentaje usan <code>ALL</code> para quitar el filtro de la dimensión y así comparar contra el total:</p>
+        <pre><code>% del Total Región =
+DIVIDE([Ventas Totales],
+       CALCULATE([Ventas Totales], ALL('Dim Cliente'[Region])))
+
+% por Fila Categoría =
+DIVIDE([Ventas Totales],
+       CALCULATE([Ventas Totales], ALL('Dim Producto'[Categoria])))</code></pre>
+        <p><strong>Control de totales:</strong> el modelo reproduce los valores de referencia de la práctica: $7,416,318.43 en ventas y 500 tickets.</p>
+      </section>
+
+      <section id="resultados">
+        <h2>3. Resultados del informe</h2>
+        <p>El informe de Power BI se organiza en cuatro páginas. Aquí se muestra una captura de cada una.</p>
+
+        <figure>
+          <img src="PAG1.png" alt="Resumen ejecutivo con tarjetas de KPIs, mapa de árbol de ventas por región y segmentación por año">
+          <figcaption>Figura 2. Página 1, Resumen ejecutivo: los tres KPIs y el peso de cada región en las ventas.</figcaption>
+        </figure>
+
+        <figure>
+          <img src="PAG2.png" alt="Desglose comercial con matriz de región por categoría, tabla de productos y gráficos de barras">
+          <figcaption>Figura 3. Página 2, Desglose comercial: ventas por región, categoría y producto.</figcaption>
+        </figure>
+
+        <figure>
+          <img src="PAG3.png" alt="Tendencia temporal con variación porcentual anual, comparación mensual y serie diaria de ventas">
+          <figcaption>Figura 4. Página 3, Tendencia temporal: comparación mes a mes entre 2024 y 2025, y serie diaria.</figcaption>
+        </figure>
+
+        <figure>
+          <img src="PAG4.png" alt="Asociaciones y hallazgos con gráfico de dispersión, matriz de porcentajes y notas de interpretación">
+          <figcaption>Figura 5. Página 4, Asociaciones y hallazgos: dispersión Tickets vs. Ventas y matriz Región × Categoría.</figcaption>
+        </figure>
+
+        <h3>Lo que muestran los datos</h3>
+
+        <h4>Por región</h4>
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr><th>Región</th><th>Ventas</th><th>% del total</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Centro</td><td>$3,116,134.15</td><td>42.02%</td></tr>
+              <tr><td>Occidente</td><td>$2,147,838.16</td><td>28.96%</td></tr>
+              <tr><td>Norte</td><td>$1,634,610.07</td><td>22.04%</td></tr>
+              <tr><td>Sur</td><td>$517,736.05</td><td>6.98%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Por producto</h4>
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr><th>Producto</th><th>Unidades</th><th>Ventas</th><th>% del total</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Laptop</td><td>311</td><td>$5,246,175.22</td><td>70.74%</td></tr>
+              <tr><td>Monitor</td><td>302</td><td>$1,471,899.08</td><td>19.85%</td></tr>
+              <tr><td>Headset</td><td>303</td><td>$340,288.89</td><td>4.59%</td></tr>
+              <tr><td>Teclado</td><td>308</td><td>$261,165.64</td><td>3.52%</td></tr>
+              <tr><td>Mouse</td><td>278</td><td>$96,789.60</td><td>1.31%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Las unidades vendidas son parecidas entre los cinco productos (de 278 a 311), pero el dinero no: la laptop sola genera cerca de siete de cada diez pesos, porque su precio es mucho más alto.</p>
+
+        <h4>En el tiempo</h4>
+        <p>Las ventas de 2025 fueron <strong>4.13% mayores</strong> que las de 2024. En la comparación mensual, julio es el punto más alto de ambos años. En cambio, septiembre y diciembre de 2025 quedan muy por debajo de los mismos meses de 2024.</p>
+      </section>
+
+      <section id="asociacion">
+        <h2>4. Análisis de asociación</h2>
+
+        <h3>4.1 Variables numéricas: Tickets y Ventas Totales</h3>
+        <p>En el gráfico de dispersión cada punto es un cliente. La línea de tendencia sube, de modo que los clientes con más tickets suelen acumular más ventas. Aun así, hay clientes que se separan bastante de la línea: algunos compran poco pero gastan mucho, y otros hacen muchas compras de monto bajo. Por eso la relación es <strong>positiva, de débil a moderada</strong>. El número de tickets ayuda a explicar las ventas, pero no es el único factor; también pesa el monto de cada compra.</p>
+
+        <h3>4.2 Variables categóricas: Región y Categoría</h3>
+        <p>Para ver si la categoría depende de la región, se calculó el porcentaje de cada categoría dentro de cada región.</p>
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr><th>Región</th><th>Accesorio</th><th>Computo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Centro</td><td>9.80%</td><td>90.20%</td></tr>
+              <tr><td>Norte</td><td>8.44%</td><td>91.56%</td></tr>
+              <tr><td>Occidente</td><td>10.92%</td><td>89.08%</td></tr>
+              <tr><td>Sur</td><td>3.96%</td><td>96.04%</td></tr>
+              <tr><td><strong>Total</strong></td><td><strong>9.41%</strong></td><td><strong>90.59%</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>La mezcla es casi la misma en las cuatro regiones: Computo ronda el 90% y Accesorio el 10%. Es decir, saber en qué región está un cliente casi no dice qué categoría compra; las variables parecen <strong>independientes</strong>. Sur se aparta un poco, con 96% en Computo.</p>
+
+        <h3>4.3 Correlación no es causalidad</h3>
+        <div class="aviso">
+          <p>Los resultados anteriores describen patrones, no causas. Que los clientes con más tickets vendan más no demuestra que los tickets provoquen esas ventas: el tamaño del cliente o su frecuencia de compra podrían influir en ambas variables al mismo tiempo. Además, los datos son simulados y no vienen de un experimento controlado. Por eso estos hallazgos sirven para formular hipótesis y no para afirmar relaciones de causa y efecto.</p>
+        </div>
+      </section>
+
+      <section id="conclusiones">
+        <h2>5. Conclusiones y recomendaciones</h2>
+        <ol>
+          <li><strong>Cuidar la región Centro.</strong> Aporta 42% de las ventas, más que cualquier otra. Perder clientes ahí tendría un impacto muy grande.</li>
+          <li><strong>Entender por qué Sur vende tan poco.</strong> Solo representa 7% de las ventas. Conviene revisar cuántos clientes hay, cómo se atienden y qué demanda existe.</li>
+          <li><strong>No depender tanto de la laptop.</strong> Un solo producto genera 70.7% de los ingresos. Impulsar monitores y accesorios repartiría mejor el riesgo.</li>
+          <li><strong>Reforzar julio y vigilar la parte final del año.</strong> Julio es el mejor mes en 2024 y 2025. En cambio, septiembre y diciembre de 2025 cayeron frente a 2024 y hay que confirmar si fue una baja real o si los datos están incompletos.</li>
+          <li><strong>Mirar el monto por ticket, no solo la cantidad de tickets.</strong> La relación entre tickets y ventas es positiva pero no fuerte.</li>
+        </ol>
+
+        <h3>Limitaciones</h3>
+        <ul>
+          <li>Los datos son simulados y el alcance es pequeño: 5 productos, 20 clientes y dos años.</li>
+          <li>No hay diseño experimental, por lo que no se puede afirmar causalidad.</li>
+          <li>El análisis se centra en ventas; no se evaluó la rentabilidad con los costos.</li>
+        </ul>
+      </section>
+
+      <section id="descarga">
+        <h2>6. Archivo de Power BI</h2>
+        <p>Aquí puedes descargar el archivo <code>.pbix</code> con el modelo y el informe completos.</p>
+        <p><a class="boton" href="Practica_Ventas_GAD2401_RANC.pbix" download>Descargar el archivo .pbix</a></p>
+      </section>
+
+    </main>
+
+    <footer class="pie">
+      <p>Práctica integradora GAD-2401 · Nente Chávez Rene Alexis · Grupo 6951 · Noviembre de 2026</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>
